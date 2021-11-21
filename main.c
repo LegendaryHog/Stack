@@ -6,7 +6,7 @@ int main (void)
 {
     stack stk = {0};
 
-    Stack_Ctor (&stk, sizeof(double), fprint_double) ;
+    Stack_Ctor (&stk, sizeof(double), NULL) ;
 
 
     for (int i = 0; i < 2048; i++)

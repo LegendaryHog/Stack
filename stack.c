@@ -14,13 +14,6 @@
 #define DOUBLE_DTOR 1<<11
 #define ERR_NUM 12
 
-/*#define TYPE int
-#define CAT(x,y) x#y
-#define STACK(x) Stack_#x
-#define MY_VAR(x) my_var_#x*/
-
-//stack stk (TYPE) {};  struct Stack_int ()
-
 static enum{
     UP,
     DOWN
@@ -284,54 +277,64 @@ int Stack_Dump (const stack* const stk)
     if (stk->data > POISON);
     {
         fprintf (stk->logfile, "datacanary1 = %0X\n        ", DATACANARY1);
-        if (stk->capacity <= LOW_CAPACITY)
+        if (stk->fprint_elem != NULL)
         {
-            for (size_t i = 0; i < stk->capacity; i++)
+            if (stk->capacity <= LOW_CAPACITY)
             {
-                if (i < stk->size)
+                for (size_t i = 0; i < stk->capacity; i++)
                 {
-                    fprintf (stk->logfile, "*[%zd] = ", i);
+                    if (i < stk->size)
+                    {
+                        fprintf (stk->logfile, "*[%zd] = ", i);
+                    }
+                    else
+                    {
+                        fprintf (stk->logfile, " [%zd] = ", i);
+                    }
+                    stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
+                    fprintf (stk->logfile, "\n        ");
                 }
-                else
+            }
+            else
+            {
+                for (long long i = 0; i < START_NUM; i++)
                 {
-                    fprintf (stk->logfile, " [%zd] = ", i);
+                    if (i < stk->size)
+                    {
+                        fprintf (stk->logfile, "*[%zd] = ", i);
+                    }
+                    else
+                    {
+                        fprintf (stk->logfile, "*[%zd] = ", i);
+                    }
+                    stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
+                    fprintf (stk->logfile, "\n        ");
                 }
-                stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
-                fprintf (stk->logfile, "\n        ");
+                fprintf (stk->logfile, ".\n        .\n        .\n        ");
+
+                for (long long i = END_NUM; i >= END_NUM && i < stk->capacity; i++)
+                {
+                    if (i < stk->size)
+                    {
+                        fprintf (stk->logfile, "*[%zd] = ", i);
+                    }
+                    else
+                    {
+                        fprintf (stk->logfile, " [%zd] = ", i);
+                    }
+                    stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
+                    fprintf (stk->logfile, "\n        ");
+                }
             }
         }
         else
         {
-            for (long long i = 0; i < START_NUM; i++)
-            {
-                if (i < stk->size)
-                {
-                    fprintf (stk->logfile, "*[%zd] = ", i);
-                }
-                else
-                {
-                    fprintf (stk->logfile, "*[%zd] = ", i);
-                }
-                stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
-                fprintf (stk->logfile, "\n        ");
-            }
-            fprintf (stk->logfile, ".\n        .\n        .\n        ");
-
-            for (long long i = END_NUM; i >= END_NUM && i < stk->capacity; i++)
-            {
-                if (i < stk->size)
-                {
-                    fprintf (stk->logfile, "*[%zd] = ", i);
-                }
-                else
-                {
-                    fprintf (stk->logfile, " [%zd] = ", i);
-                }
-                stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
-                fprintf (stk->logfile, "\n        ");
-            }
+            fprintf (stk->logfile, "\n        If you want to see elements of your stack,\n");
+            fprintf (stk->logfile, "        you must write function that print element of your stack:\n\n         void (name) (FILE* file, void* ptrelem)\n\n");
+            fprintf (stk->logfile, "        and give pointer on it in Stack_Ctor in third argument\n");
+            fprintf (stk->logfile, "        do not be baka and write it.\n\n");
         }
-        fprintf (stk->logfile, "datacanary2 = %0X\n    }\n", DATACANARY2);
+        fprintf (stk->logfile, "        datacanary2 = %0X\n    }\n", DATACANARY2);
     }
     fprintf (stk->logfile, "    canary2 = %0X\n}\n", stk->canary2);
     return 0;
