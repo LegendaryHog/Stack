@@ -9,9 +9,6 @@
 #include <string.h>
 
 #define POISON 1000-7
-
-#define data_t double
-#define _FMT_ "%lf"
 #define canary_t long long
 
 #define LOW_CAPACITY 48
@@ -29,14 +26,15 @@
 
 typedef struct {
     long long canary1;
+    char*      name;
     long long size;
     long long capacity;
-    void* data;
+    void*     data;
     long long hash;
-    size_t type_s;
-    void (*fprint_elem) (FILE* file, void* ptrelem);
-    FILE* logfile;
-    unsigned int error;
+    size_t    type_s;
+    void      (*fprint_elem) (FILE* file, void* ptrelem);
+    FILE*     logfile;
+    unsigned  error;
     long long canary2;
 } stack;
 
@@ -51,7 +49,7 @@ static int Hash_Check (const stack* const stk);*/
 
 //--------------------------------------------
 
-int Stack_Ctor (stack* stk, size_t type_ass, void (*fprint) (FILE* file, void* ptrelem));
+int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint) (FILE* file, void* ptrelem));
 
 void Stack_Dtor (stack* stk);
 
@@ -70,6 +68,11 @@ int StaCkok (stack* const stk);
 void Stack_Check (const stack* const stk);
 
 void Hex_To_You (FILE* file, void* ptrelem, size_t type_ass);
+
+char* strcat_r (char* s1, char* s2);
+
+char* my_strcat (char* str1, char* str2);
+
 
 #endif
 

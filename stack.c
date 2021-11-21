@@ -98,13 +98,24 @@ static void Hash_Up (stack* stk)
 }
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int Stack_Ctor (stack* stk, size_t type_ass, void (*fprint_elem) (FILE* file, void* ptrelem))
+int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem) (FILE* file, void* ptrelem))
 {
     if (stk == NULL)
     {
         printf ("Argument of Stack_Ctor () is null pointer\n ");
         return 0;
     }
+    if (stk_name == NULL)
+    {
+        printf ("Print me name of stack bitch\n");
+        return 0;
+    }
+    stk->name = (char*) calloc (strlen (stk_name), sizeof (char));
+    for (int i = 0; stk_name[i] != '\0'; i++)
+    {
+        stk->name[i] = stk_name[i];
+    }
+
     stk->type_s = type_ass;
     stk->fprint_elem = fprint_elem;
 
@@ -114,7 +125,13 @@ int Stack_Ctor (stack* stk, size_t type_ass, void (*fprint_elem) (FILE* file, vo
     stk->data = (void*) ((char*) calloc (CAPACITY_0 * stk->type_s + 2 * sizeof (canary_t), sizeof (char)) + sizeof (canary_t));
     DATACANARY1 = 0xD1CC0C;    //left canary of stack
     DATACANARY2 = 0xC0CA0;     //right canary of data
-    stk->logfile = fopen ("logfile.txt", "w");
+    char* file_name = (char*) calloc (strlen (stk->name), sizeof (char));
+    for (int i = 0; stk_name[i] != '\0'; i++)
+    {
+        file_name[i] = stk_name[i];
+    }
+    stk->logfile = fopen (strcat_r (file_name, "logfile.txt"), "w");
+    free (file_name);
     stk->error = 0;
     stk->canary2 = 0xBADDED;
 
@@ -143,6 +160,7 @@ void Stack_Dtor (stack* stk)
     else
     {
         fclose (stk->logfile);
+        free (stk->name);
         free ((char*)stk->data - sizeof (canary_t));
         stk->data = POISON;
     }
@@ -229,14 +247,32 @@ int Stack_Pop (stack* stk, void* ptrpop)
     {
         stk->error |= STK_UFLOW;
         Stack_Check (stk);
+        //---------
+        //pop = 0
+        //---------
+        for (size_t i = 0; i < stk->type_s; i++)
+        {
+            *((char*)ptrpop + i) = 0;
+        }
         return 0;
     }
+
     Stack_Resize (stk, DOWN);
+
     stk->size--;
-    for (size_t i = 0; i < stk->type_s; i++)
+    if (ptrpop != NULL)
     {
-        *((char*)ptrpop + i) = *((char*)stk->data + stk->size * stk->type_s + i);
+        //--------------
+        //pop = elem_stk
+        //--------------
+        for (size_t i = 0; i < stk->type_s; i++)
+        {
+            *((char*)ptrpop + i) = *((char*)stk->data + stk->size * stk->type_s + i);
+        }
     }
+    //-----------------
+    //clear elem of stk
+    //-----------------
     for (size_t i = 0; i < stk->type_s; i++)
     {
         *((char*)stk->data + stk->size * stk->type_s + i) = 0;
@@ -255,7 +291,7 @@ int Stack_Dump (const stack* const stk)
         return 0;
     }
 
-    fprintf (stk->logfile, "Stack [%p]", stk);
+    fprintf (stk->logfile, "Stack_%s[%p]", stk->name, stk);
     if (stk->error > 0)
     {
         fprintf (stk->logfile, "Stack is BAD:\n");
@@ -334,7 +370,7 @@ int Stack_Dump (const stack* const stk)
             fprintf (stk->logfile, "        and give pointer on it in Stack_Ctor in third argument\n");
             fprintf (stk->logfile, "        do not be baka and write it.\n\n");
         }
-        fprintf (stk->logfile, "        datacanary2 = %0X\n    }\n", DATACANARY2);
+        fprintf (stk->logfile, "    datacanary2 = %0X\n    }\n", DATACANARY2);
     }
     fprintf (stk->logfile, "    canary2 = %0X\n}\n", stk->canary2);
     return 0;
@@ -376,4 +412,29 @@ void Hex_To_You (FILE* file, void* ptrelem, size_t type_ass)
         fprintf (file, "%0X", *((char*)ptrelem + i));
     }
 }
+
+char* strcat_r (char* str1, char* str2)
+{
+    str1 = (char*) realloc (str1, strlen (str1) + strlen (str2) + 1);
+    return my_strcat (str1, str2);
+}
+
+char* my_strcat (char* str1, char* str2)
+{
+    char* ptr = str1;
+
+    while (*str1 != '\0')
+    {
+        str1++;
+    }
+
+    while (*str2 != '\0')
+    {
+        *str1++ = *str2++;
+    }
+    *str1 = '\0';
+
+    return ptr;
+}
+
 
