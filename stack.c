@@ -35,13 +35,6 @@ char errors_name [][VLG] = {
     {"Stack pointer is null"}          //(12)
 };
 
-void ass (int expression, FILE* logfile)
-{
-    if (expression == 0)
-    {
-        fprintf (logfile, "\n do meow from line %d from function %s", __LINE__, __PRETTY_FUNCTION__ );
-    }
-}
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 //Hash
 static long long Hash_Calc (stack* const stk)
@@ -70,8 +63,8 @@ static long long Hash_Calc (stack* const stk)
 
 static int Hash_Check (stack* const stk)
 {
-    Stack_Check (stk);
     NULL_PTR_EXIT
+    Stack_Check (stk);
 
     long long hash = Hash_Calc (stk);
 
@@ -285,12 +278,6 @@ int Stack_Pop (stack* stk, void* ptrpop)
 
 int Stack_Dump (const stack* const stk)
 {
-    if (stk == NULL)
-    {
-        fprintf (stk->logfile, "Stack does not exist\n");
-        return 0;
-    }
-
     fprintf (stk->logfile, "Stack_%s[%p]", stk->name, stk);
     if (stk->error > 0)
     {
@@ -308,11 +295,14 @@ int Stack_Dump (const stack* const stk)
     {
         fprintf (stk->logfile, "Stack is Ok.\n");
     }
+
     fprintf (stk->logfile, "{\n    canary1 = %0X\n    hash = %lld\n    capacity = %lld\n    size = %lld\n    ", stk->canary1, stk->hash, stk->capacity, stk->size);
     fprintf (stk->logfile, "data [%p]\n    {\n        ", stk->data);
+
     if (stk->data > POISON);
     {
         fprintf (stk->logfile, "datacanary1 = %0X\n        ", DATACANARY1);
+
         if (stk->fprint_elem != NULL)
         {
             if (stk->capacity <= LOW_CAPACITY)
@@ -363,6 +353,7 @@ int Stack_Dump (const stack* const stk)
                 }
             }
         }
+
         else
         {
             fprintf (stk->logfile, "\n        If you want to see elements of your stack,\n");
@@ -370,7 +361,7 @@ int Stack_Dump (const stack* const stk)
             fprintf (stk->logfile, "        and give pointer on it in Stack_Ctor in third argument\n");
             fprintf (stk->logfile, "        do not be baka and write it.\n\n");
         }
-        fprintf (stk->logfile, "    datacanary2 = %0X\n    }\n", DATACANARY2);
+        fprintf (stk->logfile, "datacanary2 = %0X\n    }\n", DATACANARY2);
     }
     fprintf (stk->logfile, "    canary2 = %0X\n}\n", stk->canary2);
     return 0;
@@ -380,15 +371,15 @@ int StaCkok (stack* const stk)
 {
     NULL_PTR_EXIT
 
-    stk->error |= STK_L_CAN_DIE && (stk->canary1 != 0xBE31AB);
-    stk->error |= STK_R_CAN_DIE && (stk->canary2 !=  0xBADDED);
-    stk->error |= DATA_L_CAN_DIE && (DATACANARY1 != 0xD1CC0C);
-    stk->error |= DATA_R_CAN_DIE && (DATACANARY1 != 0xD1CC0C);
-    stk->error |= STK_OFLOW && (stk->size > stk->capacity);
-    stk->error |= SIZE_LESS_NULL && (stk->size < 0);
+    stk->error |= STK_L_CAN_DIE     && (stk->canary1 != 0xBE31AB);
+    stk->error |= STK_R_CAN_DIE     && (stk->canary2 !=  0xBADDED);
+    stk->error |= DATA_L_CAN_DIE    && (DATACANARY1 != 0xD1CC0C);
+    stk->error |= DATA_R_CAN_DIE    && (DATACANARY1 != 0xD1CC0C);
+    stk->error |= STK_OFLOW         && (stk->size > stk->capacity);
+    stk->error |= SIZE_LESS_NULL    && (stk->size < 0);
     stk->error |= CAP_LESS_STRT_CAP && (stk->capacity < CAPACITY_0);
-    stk->error |= DATA_P_NULL && (stk->data == NULL);
-    stk->error |= LOG_P_NULL && (stk->logfile == NULL);
+    stk->error |= DATA_P_NULL       && (stk->data == NULL);
+    stk->error |= LOG_P_NULL        && (stk->logfile == NULL);
 
     if (stk->error > 0)
     {
@@ -405,17 +396,14 @@ void Stack_Check (const stack* const stk)
     }
 }
 
-void Hex_To_You (FILE* file, void* ptrelem, size_t type_ass)
-{
-    for (size_t i = 0; i < type_ass; i++)
-    {
-        fprintf (file, "%0X", *((char*)ptrelem + i));
-    }
-}
-
 char* strcat_r (char* str1, char* str2)
 {
-    str1 = (char*) realloc (str1, strlen (str1) + strlen (str2) + 1);
+    size_t len1 = strlen (str1);
+    size_t len2 = strlen (str2);
+    if (sizeof (str1) < len1 + len2 +1)
+    {
+        str1 = (char*) realloc (str1, len1 + len2 + 1);
+    }
     return my_strcat (str1, str2);
 }
 

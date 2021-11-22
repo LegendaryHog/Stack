@@ -12,7 +12,7 @@ int main (void)
     Stack_Ctor (&stk1, "int",  sizeof (int), fprint_int);
     Stack_Ctor (&stk, "double", sizeof(double), fprint_double);
 
-    for (int i = 0; i < 2048; i++)
+    for (int i = 0; i < 20; i++)
     {
         Stack_Push_d (&stk, 10);
     }

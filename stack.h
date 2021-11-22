@@ -59,15 +59,11 @@ int Stack_Resize (stack* stk, const int mode);
 
 int Stack_Pop (stack* stk, void* ptrpop);
 
-void ass (int expression, FILE* logfile);
-
 int Stack_Dump (const stack* const stk);
 
 int StaCkok (stack* const stk);
 
 void Stack_Check (const stack* const stk);
-
-void Hex_To_You (FILE* file, void* ptrelem, size_t type_ass);
 
 char* strcat_r (char* s1, char* s2);
 
