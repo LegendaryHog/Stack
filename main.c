@@ -2,23 +2,24 @@
 
 void fprint_double (FILE* file, void* ptrdouble);
 void fprint_int (FILE* file, void* ptrint);
+void Stack_Push_d (stack* stk, double push);
+double Stack_Pop_d (stack* stk);
 
 int main (void)
 {
     stack stk = {0};
     stack stk1 = {};
-    Stack_Ctor (&stk1, "int\0",  sizeof (int), fprint_int);
-    Stack_Ctor (&stk, "double\0", sizeof(double), fprint_double);
+    Stack_Ctor (&stk1, "int",  sizeof (int), fprint_int);
+    Stack_Ctor (&stk, "double", sizeof(double), fprint_double);
 
     for (int i = 0; i < 2048; i++)
     {
-        double x = 10;
-        Stack_Push (&stk, &x);
+        Stack_Push_d (&stk, 10);
     }
     double a = 0;
     Stack_Dump (&stk);
-    Stack_Pop (&stk, &a);
-    printf ("%lf\n", a);
+
+    printf ("%lf\n", Stack_Pop_d (&stk));
     Stack_Dump (&stk);
     Stack_Dtor (&stk);
 
@@ -39,6 +40,16 @@ void fprint_double (FILE* file, void* ptrdouble)
 void fprint_int (FILE* file, void* ptrint)
 {
     fprintf (file, "%d", *((int*)ptrint));
+}
+void Stack_Push_d (stack* stk, double push)
+{
+    Stack_Push (stk, &push);
+}
+double Stack_Pop_d (stack* stk)
+{
+    double pop = 0;
+    Stack_Pop (stk, &pop);
+    return pop;
 }
 
 
