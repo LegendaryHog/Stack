@@ -7,7 +7,7 @@ double Stack_Pop_d (stack* stk);
 
 int main (void)
 {
-    stack stk = {0};
+    stack stk = {};
     stack stk1 = {};
     Stack_Ctor (&stk1, "int",  sizeof (int), fprint_int);
     Stack_Ctor (&stk, "double", sizeof(double), fprint_double);

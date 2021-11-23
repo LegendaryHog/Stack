@@ -35,6 +35,7 @@ typedef struct {
     void      (*fprint_elem) (FILE* file, void* ptrelem);
     FILE*     logfile;
     unsigned  error;
+    size_t    pos_of_name;
     long long canary2;
 } stack;
 

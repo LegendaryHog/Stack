@@ -13,11 +13,14 @@
 #define HASH_ERR 1<<10
 #define DOUBLE_DTOR 1<<11
 #define ERR_NUM 12
+#define MAX_NUM_STK 1024
 
 static enum{
     UP,
     DOWN
 };
+
+char* stk_names[MAX_NUM_STK] = {NULL};
 
 char errors_name [][VLG] = {
     {"stack left canary corruption"},  //(0)
@@ -95,18 +98,39 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
 {
     if (stk == NULL)
     {
-        printf ("Argument of Stack_Ctor () is null pointer\n ");
+        printf ("Pointer on stack is null\n");
         return 0;
     }
     if (stk_name == NULL)
     {
-        printf ("Print me name of stack bitch\n");
+        printf ("Print me name of stack bitch or ORAORAORAORAORAORAORAORAORAORAORAORAORAORAORAORAORAOR\n");
         return 0;
     }
+
     stk->name = (char*) calloc (strlen (stk_name), sizeof (char));
+
     for (int i = 0; stk_name[i] != '\0'; i++)
     {
         stk->name[i] = stk_name[i];
+    }
+
+    for (size_t i = 0; i < MAX_NUM_STK; i++)
+    {
+        if (stk_names[i] != NULL && strcmp (stk->name, stk_names[i]) == 0)
+        {
+            printf ("Two stacks with one name: %s\n", stk->name);
+            return 0;
+        }
+    }
+
+    for (size_t i = 0; i < MAX_NUM_STK; i++)
+    {
+        if (stk_names[i] == NULL)
+        {
+            stk_names[i] = stk->name;
+            stk->pos_of_name = i;
+            break;
+        }
     }
 
     stk->type_s = type_ass;
@@ -152,6 +176,7 @@ void Stack_Dtor (stack* stk)
     }
     else
     {
+        stk_names[stk->pos_of_name] = NULL;
         fclose (stk->logfile);
         free (stk->name);
         free ((char*)stk->data - sizeof (canary_t));
@@ -207,7 +232,6 @@ int Stack_Resize (stack* stk, const int  mode)
         }
         else
         {
-
             DATACANARY2 = *((canary_t*)((char*)stk->data + start_capacity * stk->type_s));
             *((canary_t*)((char*)stk->data + start_capacity * stk->type_s)) = 0;
             if (mode == UP)
