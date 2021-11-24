@@ -1,17 +1,17 @@
 #include "stack.h"
 
-#define STK_L_CAN_DIE 1<<0
-#define STK_R_CAN_DIE 1<<1
-#define DATA_L_CAN_DIE 1<<2
-#define DATA_R_CAN_DIE 1<<3
-#define STK_UFLOW 1<<4
-#define STK_OFLOW 1<<5
-#define SIZE_LESS_NULL 1<<6
-#define CAP_LESS_STRT_CAP 1<<7
-#define DATA_P_NULL 1<<8
-#define LOG_P_NULL 1<<9
-#define HASH_ERR 1<<10
-#define DOUBLE_DTOR 1<<11
+#define STK_L_CAN_DIE (1<<0)
+#define STK_R_CAN_DIE (1<<1)
+#define DATA_L_CAN_DIE (1<<2)
+#define DATA_R_CAN_DIE (1<<3)
+#define STK_UFLOW (1<<4)
+#define STK_OFLOW (1<<5)
+#define SIZE_LESS_NULL (1<<6)
+#define CAP_LESS_STRT_CAP (1<<7)
+#define DATA_P_NULL (1<<8)
+#define LOG_P_NULL (1<<9)
+#define HASH_ERR (1<<10)
+#define DOUBLE_DTOR (1<<11)
 #define ERR_NUM 12
 #define MAX_NUM_STK 1024
 
@@ -20,7 +20,9 @@ static enum{
     DOWN
 };
 
-char* stk_names[MAX_NUM_STK] = {NULL};
+stack names = {};
+
+int names_ctored = 0;
 
 char errors_name [][VLG] = {
     {"stack left canary corruption"},  //(0)
@@ -106,6 +108,11 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
         printf ("Print me name of stack bitch or ORAORAORAORAORAORAORAORAORAORAORAORAORAORAORAORAORAOR\n");
         return 0;
     }
+    if (names_ctored == 0)
+    {
+        names_ctored = 1;
+        Stack_Ctor (&names, "names", sizeof (char*), NULL);
+    }
 
     stk->name = (char*) calloc (strlen (stk_name), sizeof (char));
 
@@ -114,22 +121,12 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
         stk->name[i] = stk_name[i];
     }
 
-    for (size_t i = 0; i < MAX_NUM_STK; i++)
+    for (size_t i = 0; i < names.capacity; i++)
     {
-        if (stk_names[i] != NULL && strcmp (stk->name, stk_names[i]) == 0)
+        if ((char*)names.data + i != NULL && strcmp (stk->name, (char*)names.data + i) == 0)
         {
             printf ("Two stacks with one name: %s\n", stk->name);
             return 0;
-        }
-    }
-
-    for (size_t i = 0; i < MAX_NUM_STK; i++)
-    {
-        if (stk_names[i] == NULL)
-        {
-            stk_names[i] = stk->name;
-            stk->pos_of_name = i;
-            break;
         }
     }
 
@@ -154,6 +151,10 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
 
     stk->hash = Hash_Calc (stk);
 
+    Stack_Push (&names, &stk->name);
+    stk->pos_of_name = names.size - 1;
+
+
     Hash_Check (stk);
     Stack_Check (stk);
 
@@ -176,7 +177,12 @@ void Stack_Dtor (stack* stk)
     }
     else
     {
-        stk_names[stk->pos_of_name] = NULL;
+        printf ("hui1\n");
+        for (size_t i = 0; i < stk->type_s; i++)
+        {
+            *((char*)stk->data + stk->pos_of_name * stk->type_s + i) = 0;
+        }
+        printf ("hui2\n");
         fclose (stk->logfile);
         free (stk->name);
         free ((char*)stk->data - sizeof (canary_t));
@@ -288,7 +294,7 @@ int Stack_Pop (stack* stk, void* ptrpop)
         }
     }
     //-----------------
-    //clear elem of stk
+    //clean elem of stk
     //-----------------
     for (size_t i = 0; i < stk->type_s; i++)
     {
@@ -396,14 +402,14 @@ int StaCkok (stack* const stk)
     NULL_PTR_EXIT
 
     stk->error |= STK_L_CAN_DIE     && (stk->canary1 != 0xBE31AB);
-    stk->error |= STK_R_CAN_DIE     && (stk->canary2 !=  0xBADDED);
-    stk->error |= DATA_L_CAN_DIE    && (DATACANARY1 != 0xD1CC0C);
-    stk->error |= DATA_R_CAN_DIE    && (DATACANARY1 != 0xD1CC0C);
+    stk->error |= STK_R_CAN_DIE     && (stk->canary2 != 0xBADDED);
+    stk->error |= DATA_L_CAN_DIE    && (DATACANARY1 != 0xD1CC0C); ///segfauld
+    stk->error |= DATA_R_CAN_DIE    && (DATACANARY2 != 0xC0CA0);
     stk->error |= STK_OFLOW         && (stk->size > stk->capacity);
     stk->error |= SIZE_LESS_NULL    && (stk->size < 0);
     stk->error |= CAP_LESS_STRT_CAP && (stk->capacity < CAPACITY_0);
     stk->error |= DATA_P_NULL       && (stk->data == NULL);
-    stk->error |= LOG_P_NULL        && (stk->logfile == NULL);
+    stk->error |= LOG_P_NULL        && (stk->logfile == NULL);*/
 
     if (stk->error > 0)
     {
@@ -447,6 +453,11 @@ char* my_strcat (char* str1, char* str2)
     *str1 = '\0';
 
     return ptr;
+}
+
+int Stack_Push_ptr (stack* stk, void* ptr)
+{
+    return Stack_Push (stk, &ptr);
 }
 
 
