@@ -1,58 +1,29 @@
-#include "stack.h"
-
-void fprint_double (FILE* file, void* ptrdouble);
-void fprint_int (FILE* file, void* ptrint);
-void Stack_Push_d (stack* stk, double push);
-double Stack_Pop_d (stack* stk);
+#include "Assembler.h"
 
 int main (void)
 {
-    stack stk = {};
-    stack stk1 = {};
-    Stack_Ctor (&stk1, "int",  sizeof (int), fprint_int);
-    Stack_Ctor (&stk, "double", sizeof(double), fprint_double);
+    size_t buffsize = 0;
 
-    for (int i = 0; i < 20; i++)
+    char* ptrbuff = From_File_to_buffer (&buffsize);
+
+    char* code = Buffer_to_Code (ptrbuff, buffsize);
+
+    FILE* Code = fopen ("machine_code.bin", "wb");
+
+    if (code != NULL)
     {
-        Stack_Push_d (&stk, 10);
+        Disassembler (code);
     }
-    double a = 0;
-    Stack_Dump (&stk);
+    else
+    {
+        printf ("assembler error\n");
+        return 0;
+    }
 
-    printf ("%lf\n", Stack_Pop_d (&stk));
-    Stack_Dump (&stk);
-    Stack_Dtor (&stk);
+    fwrite (code, sizeof (char), sizeof (code), Code);
 
-    int b = 15;
-    Stack_Push (&stk1, &b);
-    Stack_Dump (&stk1);
-    Stack_Pop (&stk1, NULL);
-    Stack_Dump (&stk1);
-    Stack_Dtor (&stk1);
+    fclose (Code);
+    free (code);
 
     return 0;
 }
-
-void fprint_double (FILE* file, void* ptrdouble)
-{
-    fprintf (file, "%lf", *((double*)ptrdouble));
-}
-void fprint_int (FILE* file, void* ptrint)
-{
-    fprintf (file, "%d", *((int*)ptrint));
-}
-void Stack_Push_d (stack* stk, double push)
-{
-    Stack_Push (stk, &push);
-}
-double Stack_Pop_d (stack* stk)
-{
-    double pop = 0;
-    Stack_Pop (stk, &pop);
-    return pop;
-}
-
-
-
-
-
