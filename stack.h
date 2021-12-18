@@ -66,6 +66,8 @@ int StaCkok (stack* const stk);
 
 void Stack_Check (stack* const stk);
 
+int Stack_Push_ptr (stack* stk, void* ptr);
+
 char* strcat_r (char* s1, char* s2);
 
 char* my_strcat (char* str1, char* str2);

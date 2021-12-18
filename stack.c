@@ -15,7 +15,7 @@
 #define ERR_NUM 12
 #define MAX_NUM_STK 1024
 
-static enum{
+enum{
     UP,
     DOWN,
 };
@@ -23,6 +23,8 @@ static enum{
 stack names = {};
 
 int names_ctored = 0;
+
+size_t stacks_num = 0;
 
 char errors_name [][VLG] = {
     {"stack left canary corruption"},  //(0)
@@ -114,7 +116,7 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
         Stack_Ctor (&names, "names", sizeof (char*), NULL);
     }
 
-    stk->name = (char*) calloc (strlen (stk_name), sizeof (char));
+    stk->name = (char*) calloc (sizeof (stk_name) - 1, sizeof (char));
 
     for (int i = 0; stk_name[i] != '\0'; i++)
     {
@@ -139,13 +141,17 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
     stk->data = (void*) ((char*) calloc (CAPACITY_0 * stk->type_s + 2 * sizeof (canary_t), sizeof (char)) + sizeof (canary_t));
     DATACANARY1 = 0xD1CC0C;    //left canary of stack
     DATACANARY2 = 0xC0CA0;     //right canary of data
-    char* file_name = (char*) calloc (strlen (stk->name), sizeof (char));
+    char* file_name = (char*) calloc (sizeof (stk->name) - 1, sizeof (char));
     for (int i = 0; stk_name[i] != '\0'; i++)
     {
         file_name[i] = stk_name[i];
     }
-    stk->logfile = fopen (strcat_r (file_name, "logfile.txt"), "w");
+
+    
+    file_name = strcat_r (file_name, "logfile.txt");
+    stk->logfile = fopen (file_name, "w"); 
     free (file_name);
+
     stk->error = 0;
     stk->canary2 = 0xBADDED;
 
@@ -157,6 +163,8 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
 
     Hash_Check (stk);
     Stack_Check (stk);
+
+    stacks_num++;
 
     return 1;
 }
@@ -180,6 +188,7 @@ int Stack_Dtor (stack* stk)
     }
     else
     {
+        stacks_num--;
         for (size_t i = 0; i < stk->type_s; i++)
         {
             *((char*)stk->data + stk->pos_of_name * stk->type_s + i) = 0;
@@ -188,6 +197,12 @@ int Stack_Dtor (stack* stk)
         free (stk->name);
         free ((char*)stk->data - sizeof (canary_t));
         stk->data = (void*)POISON;
+
+        if (stacks_num == 1)
+        {
+            Stack_Dtor (&names);
+            names_ctored = 0;
+        }
         return 1;
     }
 }
@@ -331,7 +346,7 @@ int Stack_Dump (const stack* const stk)
     fprintf (stk->logfile, "{\n    canary1 = %0llX\n    hash = %lld\n    capacity = %lld\n    size = %lld\n    ", stk->canary1, stk->hash, stk->capacity, stk->size);
     fprintf (stk->logfile, "data [%p]\n    {\n        ", stk->data);
 
-    if (stk->data > (void*)POISON);
+    if (stk->data > (void*)POISON)
     {
         fprintf (stk->logfile, "datacanary1 = %0llX\n        ", DATACANARY1);
 
@@ -430,11 +445,16 @@ void Stack_Check (stack* const stk)
 
 char* strcat_r (char* str1, char* str2)
 {
-    size_t len1 = strlen (str1);
-    size_t len2 = strlen (str2);
-    if (sizeof (str1) < len1 + len2 +1)
+    size_t len1 = sizeof (str1);
+    size_t len2 = sizeof (str2);
+
+    if (sizeof (str1) < len1 + len2 + 1)
     {
-        str1 = (char*) realloc (str1, len1 + len2 + 1);
+        str1 = (char*) realloc (str1, len1 + len2 + 3);
+        for (int i = len1 - 1; i < len1 + len2 + 3; i++)
+        {
+            str1[i] = '\0';
+        }
     }
     return my_strcat (str1, str2);
 }
