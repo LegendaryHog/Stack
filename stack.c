@@ -17,7 +17,7 @@
 
 static enum{
     UP,
-    DOWN
+    DOWN,
 };
 
 stack names = {};
@@ -161,32 +161,34 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
     return 1;
 }
 
-void Stack_Dtor (stack* stk)
+
+int Stack_Dtor (stack* stk)
 {
     Stack_Check (stk);
 
     NULL_PTR_EXIT
-    if (stk->data == POISON)
+    if (stk->data == (void*)POISON)
     {
         stk->error |= DOUBLE_DTOR;
         Stack_Check (stk);
+        return 0;
     }
     else if (stk->data == NULL)
     {
         Stack_Check (stk);
+        return 0;
     }
     else
     {
-        printf ("hui1\n");
         for (size_t i = 0; i < stk->type_s; i++)
         {
             *((char*)stk->data + stk->pos_of_name * stk->type_s + i) = 0;
         }
-        printf ("hui2\n");
         fclose (stk->logfile);
         free (stk->name);
         free ((char*)stk->data - sizeof (canary_t));
-        stk->data = POISON;
+        stk->data = (void*)POISON;
+        return 1;
     }
 }
 
@@ -326,12 +328,12 @@ int Stack_Dump (const stack* const stk)
         fprintf (stk->logfile, "Stack is Ok.\n");
     }
 
-    fprintf (stk->logfile, "{\n    canary1 = %0X\n    hash = %lld\n    capacity = %lld\n    size = %lld\n    ", stk->canary1, stk->hash, stk->capacity, stk->size);
+    fprintf (stk->logfile, "{\n    canary1 = %0llX\n    hash = %lld\n    capacity = %lld\n    size = %lld\n    ", stk->canary1, stk->hash, stk->capacity, stk->size);
     fprintf (stk->logfile, "data [%p]\n    {\n        ", stk->data);
 
-    if (stk->data > POISON);
+    if (stk->data > (void*)POISON);
     {
-        fprintf (stk->logfile, "datacanary1 = %0X\n        ", DATACANARY1);
+        fprintf (stk->logfile, "datacanary1 = %0llX\n        ", DATACANARY1);
 
         if (stk->fprint_elem != NULL)
         {
@@ -353,7 +355,7 @@ int Stack_Dump (const stack* const stk)
             }
             else
             {
-                for (long long i = 0; i < START_NUM; i++)
+                for (size_t i = 0; i < START_NUM; i++)
                 {
                     if (i < stk->size)
                     {
@@ -368,7 +370,7 @@ int Stack_Dump (const stack* const stk)
                 }
                 fprintf (stk->logfile, ".\n        .\n        .\n        ");
 
-                for (long long i = END_NUM; i >= END_NUM && i < stk->capacity; i++)
+                for (size_t i = END_NUM; i >= END_NUM && i < stk->capacity; i++)
                 {
                     if (i < stk->size)
                     {
@@ -391,9 +393,9 @@ int Stack_Dump (const stack* const stk)
             fprintf (stk->logfile, "        and give pointer on it in Stack_Ctor in third argument\n");
             fprintf (stk->logfile, "        do not be baka and write it.\n\n");
         }
-        fprintf (stk->logfile, "datacanary2 = %0X\n    }\n", DATACANARY2);
+        fprintf (stk->logfile, "datacanary2 = %0llX\n    }\n", DATACANARY2);
     }
-    fprintf (stk->logfile, "    canary2 = %0X\n}\n", stk->canary2);
+    fprintf (stk->logfile, "    canary2 = %0llX\n}\n", stk->canary2);
     return 0;
 }
 
@@ -403,13 +405,13 @@ int StaCkok (stack* const stk)
 
     stk->error |= STK_L_CAN_DIE     && (stk->canary1 != 0xBE31AB);
     stk->error |= STK_R_CAN_DIE     && (stk->canary2 != 0xBADDED);
-    stk->error |= DATA_L_CAN_DIE    && (DATACANARY1 != 0xD1CC0C); ///segfauld
+    stk->error |= DATA_L_CAN_DIE    && (DATACANARY1 != 0xD1CC0C);
     stk->error |= DATA_R_CAN_DIE    && (DATACANARY2 != 0xC0CA0);
     stk->error |= STK_OFLOW         && (stk->size > stk->capacity);
     stk->error |= SIZE_LESS_NULL    && (stk->size < 0);
     stk->error |= CAP_LESS_STRT_CAP && (stk->capacity < CAPACITY_0);
     stk->error |= DATA_P_NULL       && (stk->data == NULL);
-    stk->error |= LOG_P_NULL        && (stk->logfile == NULL);*/
+    stk->error |= LOG_P_NULL        && (stk->logfile == NULL);
 
     if (stk->error > 0)
     {
@@ -418,7 +420,7 @@ int StaCkok (stack* const stk)
     return 1;
 }
 
-void Stack_Check (const stack* const stk)
+void Stack_Check (stack* const stk)
 {
     if (StaCkok (stk) == 0)
     {

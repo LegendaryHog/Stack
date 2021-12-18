@@ -52,7 +52,7 @@ static int Hash_Check (const stack* const stk);*/
 
 int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint) (FILE* file, void* ptrelem));
 
-void Stack_Dtor (stack* stk);
+int Stack_Dtor (stack* stk);
 
 int Stack_Push (stack* stk, void* ptrpush);
 
@@ -64,7 +64,7 @@ int Stack_Dump (const stack* const stk);
 
 int StaCkok (stack* const stk);
 
-void Stack_Check (const stack* const stk);
+void Stack_Check (stack* const stk);
 
 char* strcat_r (char* s1, char* s2);
 
@@ -72,4 +72,3 @@ char* my_strcat (char* str1, char* str2);
 
 
 #endif
-
