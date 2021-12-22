@@ -51,7 +51,7 @@ static long long Hash_Calc (stack* const stk)
 
     long long hash = 0;
 
-    for (int i = 0; i < sizeof (stack); i++)
+    for (size_t i = 0; i < sizeof (stack); i++)
     {
         if (!(i >= (char*)&(stk->hash) - (char*)stk && i < (char*)&(stk->canary2) - (char*)stk))
         {
@@ -59,7 +59,7 @@ static long long Hash_Calc (stack* const stk)
         }
     }
 
-    for (long long i = 0; i < stk->capacity * stk->type_s + 2 * sizeof (canary_t); i++)
+    for (size_t i = 0; i < stk->capacity * stk->type_s + 2 * sizeof (canary_t); i++)
     {
         hash += (i + 1) * (*((char*)stk->data - sizeof (canary_t) + i));
     }
@@ -123,7 +123,7 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
         stk->name[i] = stk_name[i];
     }
 
-    for (size_t i = 0; i < names.capacity; i++)
+    for (long long i = 0; i < names.capacity; i++)
     {
         if ((char*)names.data + i != NULL && strcmp (stk->name, (char*)names.data + i) == 0)
         {
@@ -215,7 +215,7 @@ int Stack_Push (stack* stk, void* ptrpush)
     Stack_Check (stk);
     Stack_Resize(stk, UP);
 
-    for (int i = 0; i < stk->type_s; i++)
+    for (size_t i = 0; i < stk->type_s; i++)
     {
         *((char*)stk->data + stk->size * stk->type_s + i) = *((char*)ptrpush + i);
     }
@@ -259,7 +259,7 @@ int Stack_Resize (stack* stk, const int  mode)
             *((canary_t*)((char*)stk->data + start_capacity * stk->type_s)) = 0;
             if (mode == UP)
             {
-                for (int i = 0; i < stk->capacity/2 * stk->type_s; i++)
+                for (size_t i = 0; i < stk->capacity/2 * stk->type_s; i++)
                 {
                     *((char*)stk->data + stk->capacity/2 * stk->type_s + i) = 0;
                 }
@@ -354,15 +354,15 @@ int Stack_Dump (const stack* const stk)
         {
             if (stk->capacity <= LOW_CAPACITY)
             {
-                for (size_t i = 0; i < stk->capacity; i++)
+                for (long long i = 0; i < stk->capacity; i++)
                 {
                     if (i < stk->size)
                     {
-                        fprintf (stk->logfile, "*[%zd] = ", i);
+                        fprintf (stk->logfile, "*[%lld] = ", i);
                     }
                     else
                     {
-                        fprintf (stk->logfile, " [%zd] = ", i);
+                        fprintf (stk->logfile, " [%lld] = ", i);
                     }
                     stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
                     fprintf (stk->logfile, "\n        ");
@@ -370,30 +370,30 @@ int Stack_Dump (const stack* const stk)
             }
             else
             {
-                for (size_t i = 0; i < START_NUM; i++)
+                for (long long i = 0; i < START_NUM; i++)
                 {
                     if (i < stk->size)
                     {
-                        fprintf (stk->logfile, "*[%zd] = ", i);
+                        fprintf (stk->logfile, "*[%lld] = ", i);
                     }
                     else
                     {
-                        fprintf (stk->logfile, "*[%zd] = ", i);
+                        fprintf (stk->logfile, "*[%lld] = ", i);
                     }
                     stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
                     fprintf (stk->logfile, "\n        ");
                 }
                 fprintf (stk->logfile, ".\n        .\n        .\n        ");
 
-                for (size_t i = END_NUM; i >= END_NUM && i < stk->capacity; i++)
+                for (long long i = END_NUM; i >= END_NUM && i < stk->capacity; i++)
                 {
                     if (i < stk->size)
                     {
-                        fprintf (stk->logfile, "*[%zd] = ", i);
+                        fprintf (stk->logfile, "*[%lld] = ", i);
                     }
                     else
                     {
-                        fprintf (stk->logfile, " [%zd] = ", i);
+                        fprintf (stk->logfile, " [%lld] = ", i);
                     }
                     stk->fprint_elem (stk->logfile, (char*)stk->data + i * stk->type_s);
                     fprintf (stk->logfile, "\n        ");
@@ -451,7 +451,7 @@ char* strcat_r (char* str1, char* str2)
     if (sizeof (str1) < len1 + len2 + 1)
     {
         str1 = (char*) realloc (str1, len1 + len2 + 3);
-        for (int i = len1 - 1; i < len1 + len2 + 3; i++)
+        for (size_t i = len1 - 1; i < len1 + len2 + 3; i++)
         {
             str1[i] = '\0';
         }
