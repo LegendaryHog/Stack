@@ -116,9 +116,9 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
         Stack_Ctor (&names, "names", sizeof (char*), NULL);
     }
 
-    stk->name = (char*) calloc (sizeof (stk_name) - 1, sizeof (char));
+    stk->name = (char*) calloc (sizeof (stk_name), sizeof (char));
 
-    for (int i = 0; stk_name[i] != '\0'; i++)
+    for (int i = 0; i < sizeof (stk_name); i++)
     {
         stk->name[i] = stk_name[i];
     }
@@ -141,8 +141,8 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
     stk->data = (void*) ((char*) calloc (CAPACITY_0 * stk->type_s + 2 * sizeof (canary_t), sizeof (char)) + sizeof (canary_t));
     DATACANARY1 = 0xD1CC0C;    //left canary of stack
     DATACANARY2 = 0xC0CA0;     //right canary of data
-    char* file_name = (char*) calloc (sizeof (stk->name) - 1, sizeof (char));
-    for (int i = 0; stk_name[i] != '\0'; i++)
+    char* file_name = (char*) calloc (sizeof (stk->name), sizeof (char));
+    for (int i = 0; i < sizeof (stk->name); i++)
     {
         file_name[i] = stk_name[i];
     }
