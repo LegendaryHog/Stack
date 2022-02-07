@@ -9,8 +9,8 @@ int main (void)
 {
     stack stk = {};
     stack stk1 = {};
-    Stack_Ctor (&stk1, "int",  sizeof (int), fprint_int);
-    Stack_Ctor (&stk, "double", sizeof(double), fprint_double);
+    Stack_Ctor (&stk1, (char*)"int",  sizeof (int), fprint_int);
+    Stack_Ctor (&stk, (char*)"double", sizeof(double), fprint_double);
 
     for (int i = 0; i < 20; i++)
     {

@@ -1,19 +1,22 @@
 #include "stack.h"
 
-#define STK_L_CAN_DIE (1<<0)
-#define STK_R_CAN_DIE (1<<1)
-#define DATA_L_CAN_DIE (1<<2)
-#define DATA_R_CAN_DIE (1<<3)
-#define STK_UFLOW (1<<4)
-#define STK_OFLOW (1<<5)
-#define SIZE_LESS_NULL (1<<6)
-#define CAP_LESS_STRT_CAP (1<<7)
-#define DATA_P_NULL (1<<8)
-#define LOG_P_NULL (1<<9)
-#define HASH_ERR (1<<10)
-#define DOUBLE_DTOR (1<<11)
-#define ERR_NUM 12
-#define MAX_NUM_STK 1024
+const int STK_L_CAN_DIE     = 1<<0;
+const int STK_R_CAN_DIE     = 1<<1;
+const int DATA_L_CAN_DIE    = 1<<2;
+const int DATA_R_CAN_DIE    = 1<<3;
+const int STK_UFLOW         = 1<<4;
+const int STK_OFLOW         = 1<<5;
+const int SIZE_LESS_NULL    = 1<<6;
+const int CAP_LESS_STRT_CAP = 1<<7;
+const int DATA_P_NULL       = 1<<8;
+const int LOG_P_NULL        = 1<<9;
+const int HASH_ERR          = 1<<10;
+const int DOUBLE_DTOR       = 1<<11;
+const int ERR_NUM           = 12;
+const int POISON            = 1000 - 7;
+const int VLG               = 34;
+const int CAPACITY_0        = 8;
+
 
 enum{
     UP,
@@ -113,19 +116,19 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
     if (names_ctored == 0)
     {
         names_ctored = 1;
-        Stack_Ctor (&names, "names", sizeof (char*), NULL);
+        Stack_Ctor (&names, (char*)"names", sizeof (char*), NULL);
     }
 
-    stk->name = (char*) calloc (sizeof (stk_name), sizeof (char));
+    stk->name = (char*) calloc (strlen (stk_name) + 1, sizeof (char));
 
-    for (int i = 0; i < sizeof (stk_name); i++)
+    for (int i = 0; i < strlen (stk_name); i++)
     {
         stk->name[i] = stk_name[i];
     }
 
     for (long long i = 0; i < names.capacity; i++)
     {
-        if ((char*)names.data + i != NULL && strcmp (stk->name, (char*)names.data + i) == 0)
+        if (*(char**)((char*)names.data + i * sizeof (char*)) != NULL && strcmp (stk->name, *(char**)((char*)names.data + i * sizeof (char*))) == 0)
         {
             printf ("Two stacks with one name: %s\n", stk->name);
             return 0;
@@ -141,14 +144,14 @@ int Stack_Ctor (stack* stk, char* stk_name, size_t type_ass, void (*fprint_elem)
     stk->data = (void*) ((char*) calloc (CAPACITY_0 * stk->type_s + 2 * sizeof (canary_t), sizeof (char)) + sizeof (canary_t));
     DATACANARY1 = 0xD1CC0C;    //left canary of stack
     DATACANARY2 = 0xC0CA0;     //right canary of data
-    char* file_name = (char*) calloc (sizeof (stk->name), sizeof (char));
-    for (int i = 0; i < sizeof (stk->name); i++)
+    char* file_name = (char*) calloc (strlen (stk->name) + 1, sizeof (char));
+    for (int i = 0; i < strlen (stk->name); i++)
     {
         file_name[i] = stk_name[i];
     }
 
     
-    file_name = strcat_r (file_name, "logfile.txt");
+    file_name = strcat_r (file_name, (char*)"logfile.txt");
     stk->logfile = fopen (file_name, "w"); 
     free (file_name);
 
@@ -443,15 +446,15 @@ void Stack_Check (stack* const stk)
     }
 }
 
-char* strcat_r (char* str1, char* str2)
+char* strcat_r (char* str1, const char* str2)
 {
-    size_t len1 = sizeof (str1);
-    size_t len2 = sizeof (str2);
+    size_t len1 = strlen (str1);
+    size_t len2 = strlen (str2);
 
     if (sizeof (str1) < len1 + len2 + 1)
     {
         str1 = (char*) realloc (str1, len1 + len2 + 3);
-        for (size_t i = len1 - 1; i < len1 + len2 + 3; i++)
+        for (size_t i = len1; i < len1 + len2 + 3; i++)
         {
             str1[i] = '\0';
         }
@@ -459,7 +462,7 @@ char* strcat_r (char* str1, char* str2)
     return my_strcat (str1, str2);
 }
 
-char* my_strcat (char* str1, char* str2)
+char* my_strcat (char* str1, const char* str2)
 {
     char* ptr = str1;
 

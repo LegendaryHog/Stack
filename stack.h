@@ -8,13 +8,11 @@
 #include <assert.h>
 #include <string.h>
 
-#define POISON 1000-7
-#define canary_t long long
+typedef long long canary_t;
 
 #define LOW_CAPACITY 48
 #define START_NUM 24
 #define END_NUM stk->capacity - 16
-#define VLG 34
 #define NULL_PTR_EXIT if (stk == NULL){return 0;}
 #define GOD_LOVE_TRIPLE 3
 
@@ -22,9 +20,7 @@
 #define DATACANARY1 *((canary_t*)((char*)stk->data - sizeof (canary_t)))
 #define DATACANARY2 *((canary_t*)((char*)stk->data + stk->capacity * stk->type_s))
 
-#define CAPACITY_0 8
-
-typedef struct {
+typedef struct stack {
     long long canary1;
     char*      name;
     long long size;
@@ -62,15 +58,14 @@ int Stack_Pop (stack* stk, void* ptrpop);
 
 int Stack_Dump (const stack* const stk);
 
-int StaCkok (stack* const stk);
+int StaCkok (stack* stk);
 
 void Stack_Check (stack* const stk);
 
-int Stack_Push_ptr (stack* stk, void* ptr);
+char* strcat_r (char* str1, const char* str2);
 
-char* strcat_r (char* s1, char* s2);
-
-char* my_strcat (char* str1, char* str2);
+char* my_strcat (char* str1, const char* str2);
 
 
 #endif
+
